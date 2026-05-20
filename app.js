@@ -53,6 +53,7 @@ async function loadAll() {
   await loadHero();
   renderGenreSpotlight();   // sync — uses predefined data
   loadIndianCinema();        // async non-blocking
+  loadStreamingHub();        // async non-blocking
 }
 
 /* ===== PARTICLES ===== */
@@ -880,14 +881,15 @@ async function loadIndianCinema() {
 function renderCinemaScroll(id, items, isNew = false) {
   const container = document.getElementById(id);
   if (!container) return;
-  if (!items.length) { container.innerHTML = '<div class="cs-loading">No movies found.</div>'; return; }
+  if (!items.length) { container.innerHTML = '<div class="cs-loading">No titles found.</div>'; return; }
 
   container.innerHTML = items.map(item => {
     const title = item.title || item.name;
-    const year = (item.release_date || '').slice(0, 4);
+    const year = (item.release_date || item.first_air_date || '').slice(0, 4);
     const vote = item.vote_average ? item.vote_average.toFixed(1) : '—';
+    const type = item.mediaType || item.media_type || (item.first_air_date ? 'tv' : 'movie');
     return `
-      <div class="cinema-card" onclick="openModal(${item.id}, 'movie')">
+      <div class="cinema-card" onclick="openModal(${item.id}, '${type}')">
         <div class="cc-poster">
           <img src="${IMG}w185${item.poster_path}" alt="${title}" class="cc-img" loading="lazy"/>
           <span class="cc-vote">⭐ ${vote}</span>
@@ -899,6 +901,101 @@ function renderCinemaScroll(id, items, isNew = false) {
         </div>
       </div>`;
   }).join('');
+}
+
+/* ===== STREAMING HUB LOADING ===== */
+async function loadStreamingHub() {
+  const today = new Date().toISOString().split('T')[0];
+
+  try {
+    // 1. Netflix (Provider 8)
+    const [netflixMovies, netflixTV] = await Promise.all([
+      tmdb('/discover/movie', {
+        watch_region: 'IN',
+        with_watch_providers: '8',
+        sort_by: 'popularity.desc',
+        'primary_release_date.lte': today,
+        'vote_count.gte': 5
+      }),
+      tmdb('/discover/tv', {
+        watch_region: 'IN',
+        with_watch_providers: '8',
+        sort_by: 'popularity.desc',
+        'first_air_date.lte': today,
+        'vote_count.gte': 5
+      })
+    ]);
+    const netflixCombined = mergeAndShuffle(netflixMovies.results || [], netflixTV.results || []);
+    renderCinemaScroll('netflixScroll', netflixCombined);
+  } catch (err) {
+    console.error('Error loading Netflix content:', err);
+    document.getElementById('netflixScroll').innerHTML = '<div class="cs-loading">Failed to load Netflix titles.</div>';
+  }
+
+  try {
+    // 2. Prime Video (Provider 9)
+    const [primeMovies, primeTV] = await Promise.all([
+      tmdb('/discover/movie', {
+        watch_region: 'IN',
+        with_watch_providers: '9',
+        sort_by: 'popularity.desc',
+        'primary_release_date.lte': today,
+        'vote_count.gte': 5
+      }),
+      tmdb('/discover/tv', {
+        watch_region: 'IN',
+        with_watch_providers: '9',
+        sort_by: 'popularity.desc',
+        'first_air_date.lte': today,
+        'vote_count.gte': 5
+      })
+    ]);
+    const primeCombined = mergeAndShuffle(primeMovies.results || [], primeTV.results || []);
+    renderCinemaScroll('primeScroll', primeCombined);
+  } catch (err) {
+    console.error('Error loading Prime Video content:', err);
+    document.getElementById('primeScroll').innerHTML = '<div class="cs-loading">Failed to load Prime Video titles.</div>';
+  }
+
+  try {
+    // 3. JioHotstar (Providers 122 and 220)
+    const [jioHotstarMovies, jioHotstarTV] = await Promise.all([
+      tmdb('/discover/movie', {
+        watch_region: 'IN',
+        with_watch_providers: '122|220',
+        sort_by: 'popularity.desc',
+        'primary_release_date.lte': today,
+        'vote_count.gte': 5
+      }),
+      tmdb('/discover/tv', {
+        watch_region: 'IN',
+        with_watch_providers: '122|220',
+        sort_by: 'popularity.desc',
+        'first_air_date.lte': today,
+        'vote_count.gte': 5
+      })
+    ]);
+    const jioHotstarCombined = mergeAndShuffle(jioHotstarMovies.results || [], jioHotstarTV.results || []);
+    renderCinemaScroll('jioHotstarScroll', jioHotstarCombined);
+  } catch (err) {
+    console.error('Error loading JioHotstar content:', err);
+    document.getElementById('jioHotstarScroll').innerHTML = '<div class="cs-loading">Failed to load JioHotstar titles.</div>';
+  }
+}
+
+function mergeAndShuffle(movies, tvs) {
+  // Add mediaType field to make sure renderCinemaScroll uses the correct modal type
+  const m = movies.map(item => ({ ...item, mediaType: 'movie' }));
+  const t = tvs.map(item => ({ ...item, mediaType: 'tv' }));
+  
+  // Interleave movies and tvs to show a good variety
+  const combined = [];
+  const max = Math.max(m.length, t.length);
+  for (let i = 0; i < max; i++) {
+    if (m[i]) combined.push(m[i]);
+    if (t[i]) combined.push(t[i]);
+  }
+  return combined.slice(0, 20); // Top 20 popular on streaming platform
 }
 
 function renderGenreSpotlight() {

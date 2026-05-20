@@ -87,6 +87,50 @@
     <div class="load-more-wrap"><button class="load-more" id="loadMoreBtn" onclick="loadMore()">Load More 🎬</button></div>
   </section>
 
+  <!-- ===== STREAMING HUB ===== -->
+  <section class="streaming-hub" id="streamingHub" style="padding: 20px 40px; margin-top: 20px;">
+    <div class="streaming-hub-banner" style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px; background: linear-gradient(135deg, rgba(229, 9, 20, 0.15) 0%, rgba(0, 168, 225, 0.15) 50%, rgba(255, 184, 0, 0.15) 100%); padding: 25px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+      <span style="font-size: 2.5rem;">📺</span>
+      <div>
+        <h2 style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; letter-spacing: 1.5px; color: var(--gold); margin: 0;">Streaming Hub</h2>
+        <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 1rem; font-weight: 500;">What's hot on your favorite platforms right now</p>
+      </div>
+    </div>
+
+    <!-- Netflix -->
+    <div class="cinema-section">
+      <div class="cinema-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="cinema-section-title" style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: #e50914; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.5px;">🍿 NETFLIX</span>
+          <span class="cs-sub">Trending Global & India</span>
+        </div>
+      </div>
+      <div class="cinema-scroll" id="netflixScroll"><div class="cs-loading">Loading...</div></div>
+    </div>
+
+    <!-- Prime Video -->
+    <div class="cinema-section" style="margin-top: 30px;">
+      <div class="cinema-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="cinema-section-title" style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: #00a8e1; color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.5px;">💙 PRIME VIDEO</span>
+          <span class="cs-sub">Top Movies & Series</span>
+        </div>
+      </div>
+      <div class="cinema-scroll" id="primeScroll"><div class="cs-loading">Loading...</div></div>
+    </div>
+
+    <!-- JioHotstar -->
+    <div class="cinema-section" style="margin-top: 30px;">
+      <div class="cinema-section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <div class="cinema-section-title" style="display: flex; align-items: center; gap: 10px;">
+          <span style="background: linear-gradient(135deg, #ffc700, #ff0055); color: #fff; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.5px;">🔥 JIOHOTSTAR</span>
+          <span class="cs-sub">Blockbusters & Originals</span>
+        </div>
+      </div>
+      <div class="cinema-scroll" id="jioHotstarScroll"><div class="cs-loading">Loading...</div></div>
+    </div>
+  </section>
+
   <!-- ===== INDIA CINEMA HUB ===== -->
   <section class="india-hub" id="indiaHub">
     <div class="india-hub-banner">
