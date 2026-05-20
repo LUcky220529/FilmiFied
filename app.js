@@ -933,18 +933,18 @@ async function loadStreamingHub() {
   }
 
   try {
-    // 2. Prime Video (Provider 9)
+    // 2. Prime Video (Provider 119 in India)
     const [primeMovies, primeTV] = await Promise.all([
       tmdb('/discover/movie', {
         watch_region: 'IN',
-        with_watch_providers: '9',
+        with_watch_providers: '119',
         sort_by: 'popularity.desc',
         'primary_release_date.lte': today,
         'vote_count.gte': 5
       }),
       tmdb('/discover/tv', {
         watch_region: 'IN',
-        with_watch_providers: '9',
+        with_watch_providers: '119',
         sort_by: 'popularity.desc',
         'first_air_date.lte': today,
         'vote_count.gte': 5
@@ -958,18 +958,18 @@ async function loadStreamingHub() {
   }
 
   try {
-    // 3. JioHotstar (Providers 122 and 220)
+    // 3. JioHotstar (Providers 2336, 122, and 220 in India)
     const [jioHotstarMovies, jioHotstarTV] = await Promise.all([
       tmdb('/discover/movie', {
         watch_region: 'IN',
-        with_watch_providers: '122|220',
+        with_watch_providers: '2336|122|220',
         sort_by: 'popularity.desc',
         'primary_release_date.lte': today,
         'vote_count.gte': 5
       }),
       tmdb('/discover/tv', {
         watch_region: 'IN',
-        with_watch_providers: '122|220',
+        with_watch_providers: '2336|122|220',
         sort_by: 'popularity.desc',
         'first_air_date.lte': today,
         'vote_count.gte': 5
