@@ -1,4 +1,4 @@
-/* ===== BerojgaroKaAdda — App Logic ===== */
+/* ===== FilmiFied — App Logic ===== */
 let API_KEY = '4634702dba260b11258a3728ef929257';
 const OMDB_KEY = 'trilogy';          // free OMDb key (no account needed)
 const BASE = 'https://api.themoviedb.org/3';
@@ -376,7 +376,7 @@ async function loadMoviePage(id, type) {
       });
     }
 
-    document.title = (detail.title || detail.name || 'Movie') + ' - BerojgaroKaAdda';
+    document.title = (detail.title || detail.name || 'Movie') + ' - FilmiFied';
     window.scrollTo(0, 0);
   } catch (error) {
     console.error('Error loading movie:', error);
