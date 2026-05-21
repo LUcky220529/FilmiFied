@@ -1427,6 +1427,13 @@ function renderPersonPage(p, c) {
   
   const allCredits = [...cast, ...crew]
     .filter(m => m && m.poster_path)
+    .filter(m => {
+      const char = m.character || '';
+      const job = m.job || '';
+      // Exclude minor/guest appearances (e.g. self, guest, interviewee, presenter)
+      const excludeRegex = /\b(self|himself|herself|guest|interviewee|presenter)\b/i;
+      return !excludeRegex.test(char) && !excludeRegex.test(job);
+    })
     .filter((v, i, a) => a.findIndex(t => (t.id === v.id)) === i) // Unique
     .sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
