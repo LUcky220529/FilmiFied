@@ -281,11 +281,17 @@ async function searchMovies(q) {
   if (!q || !API_KEY) { dd.classList.add('hidden'); return; }
   
   const data = await tmdb('/search/multi', { query: q, page: 1 });
-  const results = (data.results || []).filter(r => (r.media_type === 'movie' || r.media_type === 'tv') && r.poster_path).slice(0, 4);
+  const results = (data.results || []).filter(r => 
+    ((r.media_type === 'movie' || r.media_type === 'tv') && r.poster_path) ||
+    (r.media_type === 'person' && r.profile_path)
+  ).slice(0, 5);
   
   if (!results.length) {
     const similar = await tmdb('/search/multi', { query: q.split(' ')[0], page: 1 });
-    const sug = (similar.results || []).filter(r => (r.media_type === 'movie' || r.media_type === 'tv') && r.poster_path).slice(0, 5);
+    const sug = (similar.results || []).filter(r => 
+      ((r.media_type === 'movie' || r.media_type === 'tv') && r.poster_path) ||
+      (r.media_type === 'person' && r.profile_path)
+    ).slice(0, 5);
     dd.innerHTML = `<div class="search-suggest">No exact match for "<strong>${q}</strong>"${sug.length ? '<br>Did you mean:' : ''}</div>` +
       sug.map(s => searchItemHTML(s)).join('');
     dd.classList.remove('hidden'); return;
@@ -294,19 +300,20 @@ async function searchMovies(q) {
   let html = `<div style="padding: 10px 15px 5px 15px; font-size: 0.75rem; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">Top Matches</div>`;
   html += results.map(r => searchItemHTML(r)).join('');
 
-  // Fetch similar recommendations for the top match
-  try {
-    const topMatch = results[0];
-    const recs = await tmdb(`/${topMatch.media_type}/${topMatch.id}/recommendations`);
-    const recResults = (recs.results || []).filter(r => r.poster_path).slice(0, 4);
+  // Fetch similar recommendations for the top match (only if it is a movie or tv show)
+  const topMatch = results[0];
+  if (topMatch && (topMatch.media_type === 'movie' || topMatch.media_type === 'tv')) {
+    try {
+      const recs = await tmdb(`/${topMatch.media_type}/${topMatch.id}/recommendations`);
+      const recResults = (recs.results || []).filter(r => r.poster_path).slice(0, 4);
 
-    if (recResults.length) {
-      html += `<div style="padding: 12px 15px 5px 15px; font-size: 0.75rem; color: var(--green); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; background: rgba(0,0,0,0.2);">Similar to ${topMatch.title || topMatch.name}</div>`;
-      // Ensure media_type is set for recommendations since /recommendations doesn't always include it
-      html += recResults.map(r => searchItemHTML({ ...r, media_type: topMatch.media_type })).join('');
+      if (recResults.length) {
+        html += `<div style="padding: 12px 15px 5px 15px; font-size: 0.75rem; color: var(--green); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 5px; background: rgba(0,0,0,0.2);">Similar to ${topMatch.title || topMatch.name}</div>`;
+        html += recResults.map(r => searchItemHTML({ ...r, media_type: topMatch.media_type })).join('');
+      }
+    } catch (e) {
+      console.error("Error fetching recommendations in search:", e);
     }
-  } catch (e) {
-    console.error("Error fetching recommendations in search:", e);
   }
 
   dd.innerHTML = html;
@@ -315,12 +322,31 @@ async function searchMovies(q) {
 
 function searchItemHTML(item) {
   const title = item.title || item.name;
+  
+  if (item.media_type === 'person') {
+    const imgUrl = item.profile_path ? `${IMG}w92${item.profile_path}` : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><text y="20" font-size="20">👤</text></svg>';
+    const dept = item.known_for_department === 'Acting' ? 'Actor' : (item.known_for_department || 'Person');
+    return `
+      <div class="search-item" onclick="window.openPersonProfile(${item.id})">
+        <img src="${imgUrl}" alt="${title}" style="object-fit: cover; border-radius: 50% !important; aspect-ratio: 1 !important; width: 45px !important; height: 45px !important; flex-shrink: 0;"/>
+        <div class="search-item-info">
+          <h4>${title}</h4>
+          <p>${dept} • Popularity: ${Math.round(item.popularity || 0)}</p>
+        </div>
+      </div>`;
+  }
+
   const year = (item.release_date || item.first_air_date || '').slice(0, 4);
   const type = item.media_type === 'tv' ? 'Series' : 'Movie';
-  return `<div class="search-item" onclick="openModal(${item.id},'${item.media_type}')">
-    <img src="${IMG}w92${item.poster_path}" alt="${title}"/>
-    <div class="search-item-info"><h4>${title}</h4><p>${year} • ${type} • ⭐ ${(item.vote_average || 0).toFixed(1)}</p></div>
-  </div>`;
+  const imgUrl = item.poster_path ? `${IMG}w92${item.poster_path}` : 'data:image/svg+xml,<svg/>';
+  return `
+    <div class="search-item" onclick="openModal(${item.id},'${item.media_type}')">
+      <img src="${imgUrl}" alt="${title}"/>
+      <div class="search-item-info">
+        <h4>${title}</h4>
+        <p>${year ? year + ' • ' : ''}${type} • ⭐ ${(item.vote_average || 0).toFixed(1)}</p>
+      </div>
+    </div>`;
 }
 
 /* ===== OMDB — Real IMDb + RT Ratings ===== */
