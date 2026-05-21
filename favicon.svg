@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <defs>
+    <linearGradient id="logo-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5c518"></stop>
+      <stop offset="50%" stop-color="#ff6b00"></stop>
+      <stop offset="100%" stop-color="#ff007f"></stop>
+    </linearGradient>
+  </defs>
+  <circle cx="16" cy="16" r="14" stroke="url(#logo-grad)" stroke-width="2.5" stroke-dasharray="88" stroke-dashoffset="0"></circle>
+  <circle cx="16" cy="7" r="2" fill="url(#logo-grad)"></circle>
+  <circle cx="16" cy="25" r="2" fill="url(#logo-grad)"></circle>
+  <circle cx="7" cy="16" r="2" fill="url(#logo-grad)"></circle>
+  <circle cx="25" cy="16" r="2" fill="url(#logo-grad)"></circle>
+  <polygon points="13,11 22,16 13,21" fill="url(#logo-grad)"></polygon>
+</svg>
