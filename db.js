@@ -230,6 +230,19 @@ window.updateProfilePhoto = async function(photoUrl) {
   }
 };
 
+window.updateBio = async function(bioText) {
+  const user = window.getCurrentUser ? window.getCurrentUser() : null;
+  if (!db || !user) return false;
+  
+  try {
+    await db.collection('users').doc(user.uid).update({ bio: bioText });
+    return true;
+  } catch (e) {
+    console.error("Error updating bio:", e);
+    return false;
+  }
+};
+
 window.getPublicProfile = async function(uid) {
   if (!db) return null;
   try {

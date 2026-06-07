@@ -270,17 +270,6 @@ a{color:var(--gold);text-decoration:none}
 .review-card .rc-delete{background:none;color:var(--red);font-size:.7rem;margin-top:6px;padding:2px 8px;border-radius:8px;border:1px solid var(--red);transition:all .3s}
 .review-card .rc-delete:hover{background:var(--red);color:#fff}
 
-/* ===== VIDEO PLAYER ===== */
-.player-section{background:linear-gradient(135deg,rgba(229,9,20,.08),rgba(139,92,246,.08));border:1px solid rgba(229,9,20,.2);border-radius:var(--radius);padding:20px;margin-bottom:28px}
-.watch-btn{padding:12px 32px;border-radius:30px;background:linear-gradient(135deg,#e50914,#b20710);color:#fff;font-weight:700;font-size:.95rem;transition:all .3s;box-shadow:0 4px 20px rgba(229,9,20,.3)}
-.watch-btn:hover{transform:translateY(-3px) scale(1.03);box-shadow:0 8px 35px rgba(229,9,20,.5)}
-.series-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.series-select{padding:10px 16px;border-radius:12px;background:var(--card);border:1px solid var(--border);color:var(--text);font-size:.85rem;font-family:inherit;cursor:pointer;min-width:140px;transition:border-color .3s}
-.series-select:focus{outline:none;border-color:var(--gold)}
-.series-select option{background:var(--card);color:var(--text)}
-.player-wrap{margin-top:16px;border-radius:var(--radius);overflow:hidden;position:relative;padding-top:56.25%;background:#000;border:2px solid rgba(229,9,20,.3);box-shadow:0 10px 40px rgba(0,0,0,.5);animation:scaleIn .4s ease;-webkit-overflow-scrolling:touch;transform:translateZ(0)}
-.player-wrap.hidden{display:none}
-.video-iframe{position:absolute;top:0;left:0;width:100%;height:100%;border:none;pointer-events:auto;cursor:pointer;z-index:10;transform:translateZ(0)}
 
 /* ===== STREAMING & INDIA CINEMA HUBS ===== */
 .streaming-hub, .india-hub {
@@ -427,6 +416,16 @@ a{color:var(--gold);text-decoration:none}
 /* ===== LOADER ===== */
 .loader{display:flex;justify-content:center;padding:40px}.loader::after{content:'';width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
 
+/* ===== PROFILE BIO ===== */
+.profile-bio-container { margin-top: 10px; }
+.profile-bio-text { color: var(--text2); font-size: 0.85rem; line-height: 1.5; margin-bottom: 8px; }
+.edit-bio-btn { background: none; border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; }
+.edit-bio-btn:hover { background: rgba(255,255,255,0.1); border-color: var(--text); }
+.profile-bio-edit { margin-top: 10px; }
+.bio-textarea { width: 100%; max-width: 400px; height: 80px; background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; font-family: inherit; font-size: 0.85rem; resize: none; margin-bottom: 8px; }
+.bio-textarea:focus { outline: none; border-color: var(--gold); }
+.bio-actions { display: flex; gap: 8px; }
+
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
   .navbar{position:sticky;top:0;background:var(--bg);padding:10px 16px;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
@@ -446,14 +445,11 @@ a{color:var(--gold);text-decoration:none}
   .hero-dots{right:20px}
   .nav-right{display:flex;gap:6px}
   .nav-btn{padding:5px 10px;font-size:0.75rem}
-  /* ===== PLAYER MOBILE FIX ===== */
   .modal-overlay{padding:20px 0}
   .modal{border-radius:12px 12px 0 0;width:100%;max-width:100%}
-  .player-section{padding:12px 0;border-radius:0;border-left:none;border-right:none;margin-left:-8px;margin-right:-8px;width:calc(100% + 16px)}
-  .player-wrap{border-radius:0;border-left:none;border-right:none;margin-left:-12px;margin-right:-12px;width:calc(100% + 24px);border-top:2px solid rgba(229,9,20,.4);border-bottom:2px solid rgba(229,9,20,.4)}
-  .series-controls{padding:0 12px}
 }
 @media(max-width:480px){
   .movies-grid{grid-template-columns:repeat(2,1fr);gap:10px}
   .hero-title{font-size:1.8rem}
 }
+

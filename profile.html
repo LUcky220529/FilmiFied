@@ -136,7 +136,7 @@
     </svg>
     <div class="logo-text-wrap">
       <span class="logo-title">FilmiFied</span>
-      <span class="logo-tagline">too much yapping,not enough cinema</span>
+      <span class="logo-tagline">Too Much Yapping Not Enough Cinema</span>
     </div>
   </div>
   <div class="nav-right">
@@ -158,6 +158,17 @@
       </div>
       <div class="profile-info">
         <h1 class="profile-name" id="profileName">Loading...</h1>
+        <div class="profile-bio-container" id="bioContainer" style="display: none;">
+          <p class="profile-bio-text" id="bioText"></p>
+          <button class="edit-bio-btn" id="editBioBtn" onclick="toggleBioEdit()" style="display: none;">Edit Bio</button>
+        </div>
+        <div class="profile-bio-edit" id="bioEditContainer" style="display: none;">
+          <textarea id="bioInput" class="bio-textarea" placeholder="Write something about your cinematic taste..." maxlength="150"></textarea>
+          <div class="bio-actions">
+            <button class="btn-primary" onclick="saveBio()" style="padding: 6px 12px; font-size: 0.8rem;">Save</button>
+            <button class="btn-ghost" onclick="toggleBioEdit()" style="padding: 6px 12px; font-size: 0.8rem;">Cancel</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -165,7 +176,7 @@
   <div class="profile-tabs" id="profileTabs">
     <button class="ptab active" onclick="switchTab('reviewsTab', this)">📝 Reviews</button>
     <button class="ptab" onclick="switchTab('watchedTab', this)">🎬 Watched</button>
-    <button class="ptab" onclick="switchTab('historyTab', this)" id="historyTabBtn">▶️ History (Private)</button>
+
   </div>
 
   <div id="reviewsTab" class="tab-content active">
@@ -176,9 +187,7 @@
     <div class="history-grid" id="userWatchedContainer"><div class="empty-state">No movies marked as watched yet.</div></div>
   </div>
 
-  <div id="historyTab" class="tab-content">
-    <div class="history-grid" id="userHistoryContainer"><div class="empty-state">Loading watch history...</div></div>
-  </div>
+
 </div>
 
 <!-- ===== NOTIFICATION ===== -->
@@ -224,7 +233,7 @@
     }
 
     if (!isOwnProfile) {
-      document.getElementById('historyTabBtn').style.display = 'none';
+
       document.getElementById('avatarOverlay').style.display = 'none';
       document.getElementById('profileAvatar').style.cursor = 'default';
     }
@@ -237,6 +246,26 @@
     }
 
     document.getElementById('profileName').textContent = profileData.username || 'User';
+
+    // Bio handling
+    const bioText = document.getElementById('bioText');
+    const bioContainer = document.getElementById('bioContainer');
+    if (profileData.bio) {
+      bioText.textContent = profileData.bio;
+      bioContainer.style.display = 'block';
+    } else {
+      if (isOwnProfile) {
+        bioText.textContent = 'No bio added yet.';
+        bioContainer.style.display = 'block';
+      } else {
+        bioContainer.style.display = 'none';
+      }
+    }
+    
+    if (isOwnProfile) {
+      document.getElementById('editBioBtn').style.display = 'inline-block';
+      document.getElementById('bioInput').value = profileData.bio || '';
+    }
     
     if (profileData.photoURL) {
       document.getElementById('profileAvatar').innerHTML = `<img src="${profileData.photoURL}" alt="Avatar">` + (isOwnProfile ? `<div class="profile-avatar-overlay">Update Photo</div>` : '');
@@ -247,31 +276,35 @@
     loadProfileReviews();
     loadProfileWatched();
 
-    if (isOwnProfile && window.loadWatchHistory) {
-      // Temporarily override renderContinueWatching
-      const oldRender = window.renderContinueWatching;
-      window.renderContinueWatching = (history) => {
-        const c = document.getElementById('userHistoryContainer');
-        if (!history || history.length === 0) {
-          c.innerHTML = '<div class="empty-state">No movies watched yet.</div>';
-          c.style.display = 'block';
-        } else {
-          c.style.display = 'grid';
-          c.innerHTML = history.map(m => `
-            <div class="movie-card" onclick="window.location.href='movie.html?id=${m.id}&type=${m.mediaType || 'movie'}'">
-              <div class="card-poster">
-                <img src="${m.poster}" alt="${m.title}"/>
-              </div>
-              <div class="card-info">
-                <h3>${m.title}</h3>
-              </div>
-            </div>
-          `).join('');
-        }
-      };
-      window.loadWatchHistory();
-    }
+
   }
+
+  window.toggleBioEdit = function() {
+    const viewDiv = document.getElementById('bioContainer');
+    const editDiv = document.getElementById('bioEditContainer');
+    if (viewDiv.style.display === 'none') {
+      viewDiv.style.display = 'block';
+      editDiv.style.display = 'none';
+    } else {
+      viewDiv.style.display = 'none';
+      editDiv.style.display = 'block';
+      document.getElementById('bioInput').focus();
+    }
+  };
+
+  window.saveBio = async function() {
+    const input = document.getElementById('bioInput').value.trim();
+    if (window.updateBio) {
+      const success = await window.updateBio(input);
+      if (success) {
+        document.getElementById('bioText').textContent = input || 'No bio added yet.';
+        showNotif('Bio updated successfully! ✨');
+        toggleBioEdit();
+      } else {
+        showNotif('Failed to update bio. 😢');
+      }
+    }
+  };
 
   function switchTab(tabId, btn) {
     document.querySelectorAll('.ptab').forEach(b => b.classList.remove('active'));
