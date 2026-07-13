@@ -176,7 +176,7 @@
   <div class="profile-tabs" id="profileTabs">
     <button class="ptab active" onclick="switchTab('reviewsTab', this)">📝 Reviews</button>
     <button class="ptab" onclick="switchTab('watchedTab', this)">🎬 Watched</button>
-
+    <button class="ptab" onclick="switchTab('historyTab', this)" id="historyTabBtn">▶️ History (Private)</button>
   </div>
 
   <div id="reviewsTab" class="tab-content active">
@@ -187,7 +187,9 @@
     <div class="history-grid" id="userWatchedContainer"><div class="empty-state">No movies marked as watched yet.</div></div>
   </div>
 
-
+  <div id="historyTab" class="tab-content">
+    <div class="history-grid" id="userHistoryContainer"><div class="empty-state">Loading watch history...</div></div>
+  </div>
 </div>
 
 <!-- ===== NOTIFICATION ===== -->
@@ -233,7 +235,7 @@
     }
 
     if (!isOwnProfile) {
-
+      document.getElementById('historyTabBtn').style.display = 'none';
       document.getElementById('avatarOverlay').style.display = 'none';
       document.getElementById('profileAvatar').style.cursor = 'default';
     }
@@ -276,7 +278,30 @@
     loadProfileReviews();
     loadProfileWatched();
 
-
+    if (isOwnProfile && window.loadWatchHistory) {
+      // Temporarily override renderContinueWatching
+      const oldRender = window.renderContinueWatching;
+      window.renderContinueWatching = (history) => {
+        const c = document.getElementById('userHistoryContainer');
+        if (!history || history.length === 0) {
+          c.innerHTML = '<div class="empty-state">No movies watched yet.</div>';
+          c.style.display = 'block';
+        } else {
+          c.style.display = 'grid';
+          c.innerHTML = history.map(m => `
+            <div class="movie-card" onclick="window.location.href='movie.html?id=${m.id}&type=${m.mediaType || 'movie'}'">
+              <div class="card-poster">
+                <img src="${m.poster}" alt="${m.title}"/>
+              </div>
+              <div class="card-info">
+                <h3>${m.title}</h3>
+              </div>
+            </div>
+          `).join('');
+        }
+      };
+      window.loadWatchHistory();
+    }
   }
 
   window.toggleBioEdit = function() {

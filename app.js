@@ -544,6 +544,33 @@ function renderModal(d, credits, prov, isWatched) {
       <div class="provider-chip"><img src="${IMG}w45${p.logo_path}" alt="${p.provider_name}"/><span>${p.provider_name}</span></div>`).join('')}</div></div>`;
   }
 
+  // ===== WATCH NOW PLAYER =====
+  if (modalMediaType === 'movie') {
+    html += `<div class="mb-section player-section">
+      <h3>▶️ Watch Now</h3>
+      <button class="watch-btn" onclick="togglePlayer()">🎬 Play Movie</button>
+      <div class="player-wrap hidden" id="playerWrap">
+        <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" class="video-iframe"></iframe>
+      </div>
+    </div>`;
+  } else {
+    // Series — season & episode selectors
+    const totalSeasons = d.number_of_seasons || 1;
+    let seasonOpts = '';
+    for (let s = 1; s <= totalSeasons; s++) seasonOpts += `<option value="${s}">Season ${s}</option>`;
+    html += `<div class="mb-section player-section">
+      <h3>▶️ Watch Now</h3>
+      <div class="series-controls">
+        <select class="series-select" id="seasonSelect" onchange="loadEpisodes()">${seasonOpts}</select>
+        <select class="series-select" id="episodeSelect"><option value="1">Episode 1</option></select>
+        <button class="watch-btn" onclick="playEpisode()">🎬 Play Episode</button>
+      </div>
+      <div class="player-wrap hidden" id="playerWrap">
+        <iframe id="videoPlayer" src="" frameborder="0" allowfullscreen allow="autoplay; encrypted-media" class="video-iframe"></iframe>
+      </div>
+    </div>`;
+  }
+
   // Rating
   html += `<div id="meterContainer"></div>
     <div class="rating-section"><h3 style="color:var(--gold);margin-bottom:14px">⭐ Rate — Apne Andaaz Mein</h3>
@@ -561,6 +588,9 @@ function renderModal(d, credits, prov, isWatched) {
   loadAndRenderCloudReviews(modalMovieId);
 
   // Player removed
+
+  // If series, auto-load episodes for season 1
+  if (modalMediaType === 'tv') loadEpisodes();
 
   // Fetch songs async
   fetchSongs(title);
@@ -789,6 +819,52 @@ function previewSong(btn, url) {
   previewAudio.onended = () => { btn.classList.remove('playing'); btn.textContent = '▶'; previewAudio = null; };
 }
 
+/* ===== VIDEO PLAYER ===== */
+window.togglePlayer = function() {
+  const wrap = document.getElementById('playerWrap');
+  const iframe = document.getElementById('videoPlayer');
+  if (wrap.classList.contains('hidden')) {
+    iframe.src = `https://vidlink.pro/movie/${modalMovieId}?primaryColor=e50914&autoplay=true`;
+    wrap.classList.remove('hidden');
+    wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (window.saveWatchHistory && window.currentMovieData) {
+      window.saveWatchHistory(window.currentMovieData);
+    }
+  } else {
+    iframe.src = '';
+    wrap.classList.add('hidden');
+  }
+};
+
+window.loadEpisodes = async function() {
+  const season = document.getElementById('seasonSelect').value;
+  const epSelect = document.getElementById('episodeSelect');
+  try {
+    const data = await tmdb(`/tv/${modalMovieId}/season/${season}`);
+    const eps = data.episodes || [];
+    epSelect.innerHTML = eps.map(e => `<option value="${e.episode_number}">Ep ${e.episode_number} — ${e.name || ''}</option>`).join('');
+    if (!eps.length) epSelect.innerHTML = '<option value="1">Episode 1</option>';
+  } catch {
+    epSelect.innerHTML = '<option value="1">Episode 1</option>';
+  }
+};
+
+window.playEpisode = function() {
+  const season = document.getElementById('seasonSelect').value;
+  const episode = document.getElementById('episodeSelect').value;
+  const wrap = document.getElementById('playerWrap');
+  const iframe = document.getElementById('videoPlayer');
+  iframe.src = `https://vidlink.pro/tv/${modalMovieId}/${season}/${episode}?primaryColor=e50914&autoplay=true&next=true`;
+  wrap.classList.remove('hidden');
+  wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (window.saveWatchHistory && window.currentMovieData) {
+    window.saveWatchHistory({
+      ...window.currentMovieData,
+      season: season,
+      episode: episode
+    });
+  }
+};
 
 /* ===== INDIAN CINEMA HUB & GENRE SPOTLIGHT ===== */
 
@@ -1248,7 +1324,34 @@ function closeModal() {
 
 /* ===== CONTINUE WATCHING ===== */
 window.renderContinueWatching = function(history) {
-  // Continue watching removed
+  const section = document.getElementById('continueWatchingSection');
+  const scroll = document.getElementById('continueWatchingScroll');
+  
+  if (!section || !scroll) return;
+  
+  if (!history || history.length === 0) {
+    section.classList.add('hidden');
+    scroll.innerHTML = '';
+    return;
+  }
+  
+  section.classList.remove('hidden');
+  
+  scroll.innerHTML = history.map(item => {
+    const isTv = item.mediaType === 'tv';
+    const epBadge = isTv && item.season ? `<div class="cw-badge">S${item.season} E${item.episode}</div>` : '';
+    
+    // The click handler redirects to movie.html (or auto-plays episode logic)
+    return `
+      <div class="cinema-card" onclick="openModal(${item.id}, '${item.mediaType}')">
+        <img src="${item.poster || 'data:image/svg+xml,<svg/>'}" alt="${item.title}" loading="lazy"/>
+        ${epBadge}
+        <div class="cinema-card-info">
+          <h4>${item.title}</h4>
+        </div>
+      </div>
+    `;
+  }).join('');
 };
 function closeModalOnOverlay(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
 
