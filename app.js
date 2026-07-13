@@ -545,7 +545,8 @@ function renderModal(d, credits, prov, isWatched) {
   }
 
   // Rating
-  html += `<div class="rating-section"><h3 style="color:var(--gold);margin-bottom:14px">⭐ Rate — Apne Andaaz Mein</h3>
+  html += `<div id="meterContainer"></div>
+    <div class="rating-section"><h3 style="color:var(--gold);margin-bottom:14px">⭐ Rate — Apne Andaaz Mein</h3>
     <div class="rating-options">${RATINGS.map(r => `<button class="rating-btn" data-val="${r.val}" onclick="selectRating(${r.val},this)" style="--rc:${r.color}">${r.emoji} ${r.label}</button>`).join('')}</div>
     <textarea class="review-textarea" id="reviewText" placeholder="Apni raay likho..."></textarea>
     <button class="submit-review" onclick="submitReview()">Submit Review ✨</button>
@@ -1059,32 +1060,12 @@ async function loadAndRenderCloudReviews(id) {
   
   const reviews = await window.loadCloudReviews(id);
   
+  renderAuraMeter(reviews);
+
   if (reviews.length === 0) {
     container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">No reviews yet. Be the first!</div>';
     return;
   }
-
-  // Calculate Distribution
-  const counts = { 5:0, 4:0, 3:0, 2:0, 1:0 };
-  reviews.forEach(r => { if(counts[r.val] !== undefined) counts[r.val]++; });
-  const total = reviews.length;
-
-  let distHtml = '<div class="review-distribution" style="margin-bottom: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px;">';
-  distHtml += `<h4 style="margin-bottom: 10px; font-size: 1rem;">Community Ratings (${total})</h4>`;
-  RATINGS.forEach(r => {
-    const c = counts[r.val];
-    const pct = total > 0 ? Math.round((c / total) * 100) : 0;
-    distHtml += `
-      <div style="display: flex; align-items: center; margin-bottom: 5px; font-size: 0.85rem;">
-        <span style="width: 120px; color: var(--text-muted);">${r.emoji} ${r.label}</span>
-        <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin: 0 10px; overflow: hidden;">
-          <div style="height: 100%; width: ${pct}%; background: ${r.color}; border-radius: 4px;"></div>
-        </div>
-        <span style="width: 30px; text-align: right; color: ${r.color}; font-weight: 600;">${c}</span>
-      </div>
-    `;
-  });
-  distHtml += '</div>';
 
   const user = window.getCurrentUser ? window.getCurrentUser() : null;
   const currentUid = user ? user.uid : null;
@@ -1148,7 +1129,64 @@ async function loadAndRenderCloudReviews(id) {
   `;
   }).join('') + '</div>';
 
-  container.innerHTML = distHtml + reviewsHtml;
+  container.innerHTML = reviewsHtml;
+}
+
+function renderAuraMeter(reviews) {
+  const container = document.getElementById('meterContainer');
+  if (!container) return;
+
+  const total = reviews.length;
+  if (total === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const counts = { 5:0, 4:0, 3:0, 2:0, 1:0 };
+  reviews.forEach(r => { if(counts[r.val] !== undefined) counts[r.val]++; });
+
+  let sum = 0;
+  reviews.forEach(r => sum += r.val);
+  const avg = sum / total;
+  const overallScore = Math.round((avg / 5) * 100);
+
+  let gradientStops = [];
+  let currentPct = 0;
+  
+  RATINGS.forEach(r => {
+    const pct = (counts[r.val] / total) * 100;
+    if (pct > 0) {
+      gradientStops.push(`${r.color} ${currentPct}% ${currentPct + pct}%`);
+      currentPct += pct;
+    }
+  });
+
+  const gradientStr = gradientStops.length > 0 ? `conic-gradient(${gradientStops.join(', ')})` : 'transparent';
+
+  let legendHtml = '<div class="aura-legend">';
+  RATINGS.forEach(r => {
+    const pct = Math.round((counts[r.val] / total) * 100);
+    legendHtml += `
+      <div class="aura-legend-item">
+        <span class="aura-dot" style="background:${r.color}"></span>
+        <span class="aura-label">${r.label}</span>
+        <span class="aura-pct">${pct}%</span>
+      </div>
+    `;
+  });
+  legendHtml += '</div>';
+
+  container.innerHTML = `
+    <div class="aura-meter-wrapper">
+      <div class="aura-glow-circle" style="background: ${gradientStr};">
+        <div class="aura-inner-circle">
+          <span class="aura-score">${overallScore}%</span>
+          <span class="aura-votes">${total} Votes</span>
+        </div>
+      </div>
+      ${legendHtml}
+    </div>
+  `;
 }
 
 window.handleToggleLike = async function(reviewId) {
