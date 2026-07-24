@@ -824,7 +824,7 @@ window.togglePlayer = function() {
   const wrap = document.getElementById('playerWrap');
   const iframe = document.getElementById('videoPlayer');
   if (wrap.classList.contains('hidden')) {
-    iframe.src = `https://vidsrc.me/embed/movie?tmdb=${modalMovieId}`;
+    iframe.src = `https://vidsrc.in/embed/movie/${modalMovieId}`;
     wrap.classList.remove('hidden');
     wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (window.saveWatchHistory && window.currentMovieData) {
@@ -854,7 +854,7 @@ window.playEpisode = function() {
   const episode = document.getElementById('episodeSelect').value;
   const wrap = document.getElementById('playerWrap');
   const iframe = document.getElementById('videoPlayer');
-  iframe.src = `https://vidsrc.me/embed/tv?tmdb=${modalMovieId}&season=${season}&episode=${episode}`;
+  iframe.src = `https://vidsrc.in/embed/tv/${modalMovieId}/${season}/${episode}`;
   wrap.classList.remove('hidden');
   wrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
   if (window.saveWatchHistory && window.currentMovieData) {
